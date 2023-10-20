@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&family=Lato:wght@400;700&display=swap');
-
+:root{
+  --loading-grey: #ededed;
+}
 * {
   box-sizing: border-box;
 }
@@ -453,4 +455,64 @@ ul {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.loading .event-item-image{
+  height: 400px;
+}
+.loading{
+  height: 400px;
+}
+.loading .event-item-content div h2{
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  line-height: 1.5rem;
+  height: 30px;
+  border-radius: 30px;
+}
+.loading .event-item-content div .event-item-date{
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  line-height: 1.2rem;
+  height: 20px;
+  border-radius: 30px;
+}
+.loading .event-item-content div p{
+  height: 25px;
+}
+
+
+
+.loading .event-item-image,
+.loading .event-item-content div h2,
+.loading .event-item-content div .event-item-date,
+.loading .event-item-content div p{
+  background-color: var(--loading-grey);
+  background: linear-gradient(
+          100deg,
+          rgba(255, 255, 255, 0) 40%,
+          rgba(255, 255, 255, .5) 50%,
+          rgba(255, 255, 255, 0) 60%
+  ) var(--loading-grey);
+  background-size: 200% 100%;
+  background-position-x: 180%;
+  animation: 1s loading ease-in-out infinite;
+}
+
+@keyframes loading {
+  to {
+    background-position-x: -20%;
+  }
+}
+
+.loading h4 {
+  min-height: 1.6rem;
+  border-radius: 4px;
+  animation-delay: .05s;
+}
+
+.loading .description {
+  min-height: 4rem;
+  border-radius: 4px;
+  animation-delay: .06s;
 }

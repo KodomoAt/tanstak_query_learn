@@ -5,6 +5,7 @@ import ErrorBlock from '../UI/ErrorBlock.jsx';
 import EventItem from './EventItem.jsx';
 import {fetchEvents} from "../../utils/http.js";
 import axios from "axios";
+import {EventLoading} from "../UI/EventLoading.jsx";
 
 export default function NewEventsSection() {
   const {data, isPending, isError, error} =useQuery({
@@ -17,7 +18,7 @@ export default function NewEventsSection() {
   let content;
 
   if (isPending) {
-    content = <LoadingIndicator />;
+    content = <> <EventLoading/> <EventLoading/> <EventLoading/></>;
   }
 
   if (isError) {
@@ -32,6 +33,7 @@ export default function NewEventsSection() {
         {data.map((event) => (
           <li key={event.id}>
             <EventItem event={event} />
+
           </li>
         ))}
       </ul>
