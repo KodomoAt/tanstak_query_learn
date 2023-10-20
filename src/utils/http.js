@@ -3,12 +3,17 @@ import axios from "axios";
 
 export const queryClient = new QueryClient();
 
-export async function fetchEvents({signal, searchTerm}) {
+export async function fetchEvents({signal, searchTerm, max}) {
     console.log(searchTerm)
-    let url = 'http://localhost:3000/events'
-    if (searchTerm) {
-        url += '?search=' + searchTerm
+    let url = 'http://localhost:3000/events';
+    if (searchTerm && max) {
+        url += `?search=${searchTerm}&max=${max}`;
+    } else if (searchTerm && !max) {
+        url += `?search=${searchTerm}`
+    } else if (!searchTerm && max) {
+        url += `?max=${max}`
     }
+
     const response = await fetch(url, {signal: signal});
 
     if (!response.ok) {
@@ -25,9 +30,7 @@ export async function fetchEvents({signal, searchTerm}) {
 
 export async function createNewEvent(eventData) {
     const response = await fetch(`http://localhost:3000/events`, {
-        method: 'POST',
-        body: JSON.stringify(eventData),
-        headers: {
+        method: 'POST', body: JSON.stringify(eventData), headers: {
             'Content-Type': 'application/json',
         },
     });
@@ -59,8 +62,9 @@ export async function fetchSelectableImages({signal}) {
     return images;
 }
 
-export async function fetchEvent({ id, signal }) {
-    const response = await fetch(`http://localhost:3000/events/${id}`, { signal });
+export async function fetchEvent({id, signal}) {
+    console.log(id, signal)
+    const response = await fetch(`http://localhost:3000/events/${id}`, {signal});
 
     if (!response.ok) {
         const error = new Error('An error occurred while fetching the event');
@@ -69,19 +73,14 @@ export async function fetchEvent({ id, signal }) {
         throw error;
     }
 
-    const { event } = await response.json();
+    const {event} = await response.json();
 
     return event;
 }
 
-export const deleleEvent = async ({ id}) => {
+export const deleleEvent = async ({id}) => {
     try {
-        const response = await axios.delete(`http://localhost:3000/events/${id}`,
-                {
-
-                }
-            )
-        ;
+        const response = await axios.delete(`http://localhost:3000/events/${id}`, {});
         return await response.data
     } catch (e) {
         const error = new Error('An error occurred while fetching the event');
@@ -91,11 +90,9 @@ export const deleleEvent = async ({ id}) => {
     }
 }
 
-export async function updateEvent({ id, event }) {
+export async function updateEvent({id, event}) {
     const response = await fetch(`http://localhost:3000/events/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ event }),
-        headers: {
+        method: 'PUT', body: JSON.stringify({event}), headers: {
             'Content-Type': 'application/json',
         },
     });

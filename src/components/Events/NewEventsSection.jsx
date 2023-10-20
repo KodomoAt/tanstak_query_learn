@@ -1,51 +1,41 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import {useQuery} from "@tanstack/react-query";
 import LoadingIndicator from '../UI/LoadingIndicator.jsx';
 import ErrorBlock from '../UI/ErrorBlock.jsx';
 import EventItem from './EventItem.jsx';
 import {fetchEvents} from "../../utils/http.js";
-import axios from "axios";
 import {EventLoading} from "../UI/EventLoading.jsx";
 
 export default function NewEventsSection() {
-  const {data, isPending, isError, error} =useQuery({
-    queryKey : ['events'],
-    staleTime:5000,
-    queryFn: fetchEvents
-  });
+    const {data, isPending, isError, error} = useQuery({
+        queryKey: ['events', {max: 3}],
+        staleTime: 5000,
+        queryFn: ({signal, queryKey}) => fetchEvents({signal, ...queryKey[1]})
+    });
 
-  console.log(data)
-  let content;
+    let content;
 
-  if (isPending) {
-    content = <> <EventLoading/> <EventLoading/> <EventLoading/></>;
-  }
+    if (isPending) {
+        content = <> <EventLoading/> <EventLoading/> <EventLoading/></>;
+    }
 
-  if (isError) {
-    content = (
-      <ErrorBlock title="An error occurred" message={error.info?.message} />
-    );
-  }
+    if (isError) {
+        content = (<ErrorBlock title="An error occurred" message={error.info?.message}/>);
+    }
 
-  if (data) {
-    content = (
-      <ul className="events-list">
-        {data.map((event) => (
-          <li key={event.id}>
-            <EventItem event={event} />
+    if (data) {
+        content = (<ul className="events-list">
+            {data.map((event) => (<li key={event.id}>
+                <EventItem event={event}/>
 
-          </li>
-        ))}
-      </ul>
-    );
-  }
+            </li>))}
+        </ul>);
+    }
 
-  return (
-    <section className="content-section" id="new-events-section">
-      <header>
-        <h2>Recently added events</h2>
-      </header>
-      {content}
-    </section>
-  );
+    return (<section className="content-section" id="new-events-section">
+        <header>
+            <h2>Recently added events</h2>
+        </header>
+        {content}
+    </section>);
 }

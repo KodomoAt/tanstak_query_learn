@@ -1,4 +1,4 @@
-import {Link, useNavigate, useParams} from 'react-router-dom';
+import {Link, redirect, useNavigate, useNavigation, useParams, useSubmit} from 'react-router-dom';
 
 import Modal from '../UI/Modal.jsx';
 import EventForm from './EventForm.jsx';
@@ -9,43 +9,43 @@ import ErrorBlock from "../UI/ErrorBlock.jsx";
 
 export default function EditEvent() {
     const navigate = useNavigate();
-    const params = useParams()
-    const {data, isPending, isError, error} = useQuery(
+    const {state} = useNavigation();
+    const params = useParams();
+    const submit = useSubmit();
+
+    const {data, isError, error} = useQuery(
         {
             queryKey: ['events', params.id],
-            queryFn: ({signal}) => fetchEvent({signal, id: params.id})
+            queryFn: ({signal}) => fetchEvent({signal, id: params.id}),
+            staleTime: 5000
 
 
         }
     )
 
-    const {mutate, isError: updateIsError, error: updateError} = useMutation({
-        mutationFn: updateEvent,
-        onMutate: async (data) => {
-            await queryClient.cancelQueries({queryKey: ['events', params.id]});
-            const previousEvent = queryClient.getQueryData(['events', params.id]);
-            queryClient.setQueryData(['events', params.id], {
-                ...data.event,
-                isPending: true
-            });
-            return {previousEvent}
-        },
-        onError: (error, variables, context) => {
-            queryClient.setQueryData(['events', params.id], context.previousEvent);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({queryKey: ['events', params.id]});
-        }
-
-
-    })
+    // const {mutate, isError: updateIsError, error: updateError} = useMutation({
+    //     mutationFn: updateEvent,
+    //     onMutate: async (data) => {
+    //         await queryClient.cancelQueries({queryKey: ['events', params.id]});
+    //         const previousEvent = queryClient.getQueryData(['events', params.id]);
+    //         queryClient.setQueryData(['events', params.id], {
+    //             ...data.event,
+    //             isPending: true
+    //         });
+    //         return {previousEvent}
+    //     },
+    //     onError: (error, variables, context) => {
+    //         queryClient.setQueryData(['events', params.id], context.previousEvent);
+    //     },
+    //     onSettled: () => {
+    //         queryClient.invalidateQueries({queryKey: ['events', params.id]});
+    //     }
+    //
+    //
+    // })
 
     function handleSubmit(formData) {
-        mutate({
-            id: params.id,
-            event: formData
-        });
-        navigate('../')
+      submit(formData, {method:"PUT"})
 
     }
 
@@ -56,11 +56,7 @@ export default function EditEvent() {
 
     let content;
 
-    if (isPending) {
-        content = <div className={"center"}>
-            <LoadingIndicator/>
-        </div>
-    }
+
     if (isError) {
         content = <>
             <ErrorBlock title={"Failed to load event"} message={error.info?.message || "Faile to load event."}/>
@@ -72,9 +68,10 @@ export default function EditEvent() {
 
     if (data) {
         content = <EventForm inputData={data} onSubmit={handleSubmit}>
-            <Link to="../" className="button-text">
+            {state === 'submitting' ? <p>Sending data ...</p> : (<Link to="../" className="button-text">
                 Cancel
-            </Link>
+            </Link>)}
+
             <button type="submit" className="button">
                 Update
             </button>
@@ -92,4 +89,22 @@ export default function EditEvent() {
 
         </>
     );
+}
+
+
+export function loader({request, params}) {
+
+    return queryClient.fetchQuery({
+        queryKey: ['events', params.id],
+        queryFn: ({signal}) => fetchEvent({signal, id:params.id})
+    })
+}
+
+export async function  action({request, params}) {
+    const formData = await request.formData();
+    const data = Object.fromEntries(formData);
+    await updateEvent({id: params.id, event: data});
+    await queryClient.invalidateQueries({queryKey: ['events', params.id]});
+    return redirect('../')
+
 }
